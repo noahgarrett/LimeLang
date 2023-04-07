@@ -1,7 +1,10 @@
 from exec import Lexer, Parser, Interpreter
-from resources import Context
+from resources import Context, SymbolTable, Number
 
 if __name__ == "__main__":
+    global_symbol_table = SymbolTable()
+    global_symbol_table.set("null", Number(0))
+
     while True:
         text = input("LimeLang > ")
 
@@ -24,6 +27,7 @@ if __name__ == "__main__":
         # Run Program
         interpreter: Interpreter = Interpreter()
         context: Context = Context("<program>")
+        context.symbol_table = global_symbol_table
         result = interpreter.visit(ast.node, context)
 
         if result.error:

@@ -18,3 +18,6 @@ class Token:
         if self.value:
             return f"{self.type}:{self.value}"
         return f"{self.type}"
+
+    def matches(self, type_, value):
+        return self.type == type_ and self.value == value
