@@ -36,3 +36,7 @@ class Number:
             if other.value == 0:
                 return None, RTError(other.pos_start, other.pos_end, "Division by zero you dumb fuck", self.context)
             return Number(self.value / other.value).set_context(self.context), None
+
+    def powered_by(self, other):
+        if isinstance(other, Number):
+            return Number(self.value ** other.value).set_context(self.context), None

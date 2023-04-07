@@ -28,23 +28,16 @@ class Parser:
 
         return result
 
-    def factor(self):
+    def atom(self):
         res: ParseResult = ParseResult()
         token = self.current_tok
 
-        if token.type in (TokenTypes.TT_PLUS, TokenTypes.TT_MINUS):
-            """factor  : (PLUS|MINUS) factor"""
-            res.register(self.advance())
-            factor = res.register(self.factor())
-            if res.error:
-                return res
-            return res.success(UnaryOpNode(token, factor))
-        elif token.type in (TokenTypes.TT_INT, TokenTypes.TT_FLOAT):
-            """factor  : INT|FLOAT"""
+        if token.type in (TokenTypes.TT_INT, TokenTypes.TT_FLOAT):
+            """atom    : INT|FLOAT"""
             res.register(self.advance())
             return res.success(NumberNode(token))
         elif token.type == TokenTypes.TT_LPAREN:
-            """factor  : LPAREN expr RPAREN"""
+            """atom  : LPAREN expr RPAREN"""
             res.register(self.advance())
             expression = res.register(self.expression())
             if res.error:
@@ -58,8 +51,26 @@ class Parser:
                 ))
 
         return res.failure(InvalidSyntaxError(
-            token.pos_start, token.pos_end, "Expected int or float"
+            token.pos_start, token.pos_end, "Expected int, float, '+', '-' or '('"
         ))
+
+    def power(self):
+        """power   : atom (POW factor)*"""
+        return self.binary_operation(self.atom, (TokenTypes.TT_POW, ), self.factor)
+
+    def factor(self):
+        res: ParseResult = ParseResult()
+        token = self.current_tok
+
+        if token.type in (TokenTypes.TT_PLUS, TokenTypes.TT_MINUS):
+            """factor  : (PLUS|MINUS) factor"""
+            res.register(self.advance())
+            factor = res.register(self.factor())
+            if res.error:
+                return res
+            return res.success(UnaryOpNode(token, factor))
+
+        return self.power()
 
     def term(self):
         return self.binary_operation(self.factor, (TokenTypes.TT_MUL, TokenTypes.TT_DIV))
@@ -69,16 +80,19 @@ class Parser:
 
     #########################
 
-    def binary_operation(self, func, ops: tuple):
+    def binary_operation(self, func_a, ops: tuple, func_b=None):
+        if func_b is None:
+            func_b = func_a
+
         res: ParseResult = ParseResult()
-        left_node = res.register(func())
+        left_node = res.register(func_a())
         if res.error:
             return res
 
         while self.current_tok.type in ops:
             operator_token = self.current_tok
             res.register(self.advance())
-            right_node = res.register(func())
+            right_node = res.register(func_b())
             if res.error:
                 return res
             left_node = BinOpNode(left_node, operator_token, right_node)

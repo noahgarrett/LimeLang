@@ -39,6 +39,8 @@ class Interpreter:
             result, error = left.multiplied_by(right)
         elif node.operator_token.type == TokenTypes.TT_DIV:
             result, error = left.divided_by(right)
+        elif node.operator_token.type == TokenTypes.TT_POW:
+            result, error = left.powered_by(right)
 
         if error:
             return res.failure(error)
