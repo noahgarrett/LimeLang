@@ -83,6 +83,31 @@ class Parser:
     def term(self):
         return self.binary_operation(self.factor, (TokenTypes.TT_MUL, TokenTypes.TT_DIV))
 
+    def arith_expr(self):
+        return self.binary_operation(self.term, (TokenTypes.TT_PLUS, TokenTypes.TT_MINUS))
+
+    def comp_expr(self):
+        res: ParseResult = ParseResult()
+
+        if self.current_tok.matches(TokenTypes.TT_KEYWORD, "not"):
+            operation_token = self.current_tok
+            res.register_advancement()
+            self.advance()
+
+            node = res.register(self.comp_expr())
+            if res.error:
+                return res
+            return res.success(UnaryOpNode(operation_token, node))
+
+        node = res.register(self.binary_operation(self.arith_expr, (TokenTypes.TT_EE, TokenTypes.TT_NE, TokenTypes.TT_LT, TokenTypes.TT_GT, TokenTypes.TT_LTE, TokenTypes.TT_GTE)))
+
+        if res.error:
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start,
+                self.current_tok.pos_end,
+                "Expected int, float, identifier, 'not', '+', '-' or '(' "
+            ))
+
     def expression(self):
         res: ParseResult = ParseResult()
 
@@ -112,11 +137,11 @@ class Parser:
                 return res
             return res.success(VarAssignNode(var_name, expr))
 
-        node = res.register(self.binary_operation(self.term, (TokenTypes.TT_PLUS, TokenTypes.TT_MINUS)))
+        node = res.register(self.binary_operation(self.comp_expr, ((TokenTypes.TT_KEYWORD, "and"), (TokenTypes.TT_KEYWORD, "or"))))
         if res.error:
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "Expected 'var', int, float, identifier, '+', '-', or '('"
+                "Expected 'var', int, float, identifier, 'not', '+', '-', or '('"
             ))
 
         return res.success(node)
@@ -132,7 +157,7 @@ class Parser:
         if res.error:
             return res
 
-        while self.current_tok.type in ops:
+        while self.current_tok.type in ops or (self.current_tok.type, self.current_tok.value) in ops:
             operator_token = self.current_tok
             res.register_advancement()
             self.advance()

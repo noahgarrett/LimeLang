@@ -1,5 +1,5 @@
 from resources.Token import Token
-from resources.Error import Error, IllegalCharError, InvalidSyntaxError, RTError
+from resources.Error import Error, IllegalCharError, InvalidSyntaxError, RTError, ExpectedCharError
 from resources.Position import Position
 from resources.Nodes import NumberNode, BinOpNode, UnaryOpNode, VarAccessNode, VarAssignNode
 from resources.ParseResult import ParseResult
