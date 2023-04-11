@@ -32,28 +32,28 @@ atom        : INT|FLOAT|STRING|IDENTIFIER
 
 list-expr   : LSQUARE (expr (COMMA expr)*)? RSQUARE
 
-if-expr     : KEYWORD:IF expr KEYWORD:THEN
+if-expr     : KEYWORD:IF expr LBRACE
                 (statement if-expr-b|if-expr-c?)
-            | (NEWLINE statements KEYWORD:END|if-expr-b|if-expr-c)
+            | (NEWLINE statements RBRACE|if-expr-b|if-expr-c)
 
-if-expr-b   : KEYWORD:ELIF expr KEYWORD:THEN
+if-expr-b   : KEYWORD:ELIF expr LBRACE
                 (statement if-expr-b|if-expr-c?)
-            | (NEWLINE statements KEYWORD:END|if-expr-b|if-expr-c)
+            | (NEWLINE statements RBRACE|if-expr-b|if-expr-c)
 
 if-expr-c   : KEYWORD:ELSE
               statement
-            | (NEWLINE statements KEYWORD:END)
+            | (NEWLINE statements RBRACE)
 
 for-expr    : KEYWORD:FOR IDENTIFIER EQ expr KEYWORD:TO expr
-                (KEYWORD:STEP expr)? KEYWORD:THEN
+                (KEYWORD:STEP expr)? LBRACE
               statement
-            | (NEWLINE statements KEYWORD:END)
+            | (NEWLINE statements RBRACE)
 
-while-expr  : KEYWORD:WHILE expr KEYWORD:THEN
+while-expr  : KEYWORD:WHILE expr LBRACE
               statement
-             | (NEWLINE statements KEYWORD:END)
+             | (NEWLINE statements RBRACE)
 
 func-def    : KEYWORD:FUN IDENTIFIER?
                 LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN
                 (ARROW expr)
-              | (NEWLINE statements KEYWORD:END)
+              | (NEWLINE statements RBRACE)

@@ -114,10 +114,10 @@ class Parser:
 
             return res.success(FuncDefNode(var_name_tok, arg_name_toks, node_to_return, True))
 
-        if self.current_tok.type != TokenTypes.TT_NEWLINE:
+        if self.current_tok.type != TokenTypes.TT_LBRACE:  # TT_NEWLINE
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f"Expected '->' or 'NEWLINE'"
+                "Expected '->' or '{'"
             ))
 
         res.register_advancement()
@@ -127,10 +127,10 @@ class Parser:
         if res.error:
             return res
 
-        if not self.current_tok.matches(TokenTypes.TT_KEYWORD, 'end'):
+        if not self.current_tok.type == TokenTypes.TT_RBRACE:  # .matches(TokenTypes.TT_KEYWORD, 'end')
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f"Expected 'end'"
+                "Expected '}'"
             ))
 
         res.register_advancement()
@@ -198,10 +198,10 @@ class Parser:
         else:
             step_value = None
 
-        if not self.current_tok.matches(TokenTypes.TT_KEYWORD, 'then'):
+        if not self.current_tok.type == TokenTypes.TT_LBRACE:  # .matches(TokenTypes.TT_KEYWORD, 'then')
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f"Expected 'then'"
+                "Expected '{'"
             ))
 
         res.register_advancement()
@@ -215,10 +215,10 @@ class Parser:
             if res.error:
                 return res
 
-            if not self.current_tok.matches(TokenTypes.TT_KEYWORD, "end"):
+            if not self.current_tok.type == TokenTypes.TT_RBRACE:  # .matches(TokenTypes.TT_KEYWORD, "end")
                 return res.failure(InvalidSyntaxError(
                     self.current_tok.pos_start, self.current_tok.pos_end,
-                    f"Expected 'end'"
+                    "Expected '}'"
                 ))
 
             res.register_advancement()
@@ -248,10 +248,10 @@ class Parser:
         if res.error:
             return res
 
-        if not self.current_tok.matches(TokenTypes.TT_KEYWORD, 'then'):
+        if not self.current_tok.type == TokenTypes.TT_LBRACE:  # .matches(TokenTypes.TT_KEYWORD, 'then')
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f"Expected 'then'"
+                "Expected '{'"
             ))
 
         res.register_advancement()
@@ -265,10 +265,10 @@ class Parser:
             if res.error:
                 return res
 
-            if not self.current_tok.matches(TokenTypes.TT_KEYWORD, "end"):
+            if not self.current_tok.type == TokenTypes.TT_RBRACE:  # .matches(TokenTypes.TT_KEYWORD, "end")
                 return res.failure(InvalidSyntaxError(
                     self.current_tok.pos_start, self.current_tok.pos_end,
-                    f"Expected 'end'"
+                    "Expected '}'"
                 ))
 
             res.register_advancement()
@@ -302,28 +302,32 @@ class Parser:
             res.register_advancement()
             self.advance()
 
-            if self.current_tok.type == TokenTypes.TT_NEWLINE:
+            if self.current_tok.type == TokenTypes.TT_LBRACE:
                 res.register_advancement()
                 self.advance()
 
-                statements = res.register(self.statements())
-                if res.error:
-                    return res
-                else_case = (statements, True)
-
-                if self.current_tok.matches(TokenTypes.TT_KEYWORD, 'end'):
+                if self.current_tok.type == TokenTypes.TT_NEWLINE:
                     res.register_advancement()
                     self.advance()
+
+                    statements = res.register(self.statements())
+                    if res.error:
+                        return res
+                    else_case = (statements, True)
+
+                    if self.current_tok.type == TokenTypes.TT_RBRACE:  # .matches(TokenTypes.TT_KEYWORD, 'end')
+                        res.register_advancement()
+                        self.advance()
+                    else:
+                        return res.failure(InvalidSyntaxError(
+                            self.current_tok.pos_start, self.current_tok.pos_end,
+                            "Expected '}'"
+                        ))
                 else:
-                    return res.failure(InvalidSyntaxError(
-                        self.current_tok.pos_start, self.current_tok.pos_end,
-                        f"Expected 'end'"
-                    ))
-            else:
-                expr = res.register(self.statement())
-                if res.error:
-                    return res
-                else_case = (expr, False)
+                    expr = res.register(self.statement())
+                    if res.error:
+                        return res
+                    else_case = (expr, False)
 
         return res.success(else_case)
 
@@ -361,10 +365,10 @@ class Parser:
         if res.error:
             return res
 
-        if not self.current_tok.matches(TokenTypes.TT_KEYWORD, 'then'):
+        if not self.current_tok.type == TokenTypes.TT_LBRACE:  # .matches(TokenTypes.TT_KEYWORD, 'then')
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                f"Expected 'then'"
+                "Expected '{'"
             ))
 
         res.register_advancement()
@@ -379,9 +383,16 @@ class Parser:
                 return res
             cases.append((condition, statements, True))
 
-            if self.current_tok.matches(TokenTypes.TT_KEYWORD, 'end'):
+            if self.current_tok.type == TokenTypes.TT_RBRACE:  # .matches(TokenTypes.TT_KEYWORD, 'end')
                 res.register_advancement()
                 self.advance()
+
+                if self.current_tok.matches(TokenTypes.TT_KEYWORD, 'elif') or self.current_tok.matches(TokenTypes.TT_KEYWORD, 'else'):
+                    all_cases = res.register(self.if_expr_b_or_c())
+                    if res.error:
+                        return res
+                    new_cases, else_case = all_cases
+                    cases.extend(new_cases)
             else:
                 all_cases = res.register(self.if_expr_b_or_c())
                 if res.error:

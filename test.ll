@@ -1,31 +1,30 @@
-# LimeLang
+fun works() {
+    # For loop
+    for i = 0 to 2 {
+        print("works")
+    }
 
-fun oopify(prefix) -> prefix + "oop"
+    # Variable Assignment
+    var i = 0
 
-fun join(elements, separator)
-	var result = ""
-	var len = len(elements)
+    # While Loop
+    while i < 2 {
+        print("while")
+        var i = i + 1
+    }
 
-	for i = 0 to len then
-		var result = result + elements/i
-		if i != len - 1 then var result = result + separator
-	end
+    # Combine two lists
+    var listA = [1, 2, 3]
+    var listB = [4, 5, 6]
+    extend(listA, listB)
 
-	return result
-end
+    if len(listA) > 10 {
+        print(10)
+    } elif 1 == 2 {
+        print(69)
+    } else {
+        print("AHA")
+    }
+}
 
-fun map(elements, func)
-	var new_elements = []
-
-	for i = 0 to len(elements) then
-		append(new_elements, func(elements/i))
-	end
-
-	return new_elements
-end
-
-print("Greetings universe!")
-
-for i = 0 to 5 then
-	print(join(map(["l", "sp"], oopify), ", "))
-end
+works()

@@ -1,7 +1,11 @@
 from exec import Lexer, Parser, Interpreter
 from resources import Context, SymbolTable
 from values import Number, BuiltInFunction
+import time
+import sys
+import os
 
+# pyinstaller --onefile -n lime main.py
 
 if __name__ == "__main__":
     global_symbol_table = SymbolTable()
@@ -24,10 +28,13 @@ if __name__ == "__main__":
     global_symbol_table.set("len", BuiltInFunction("len"))
 
     def run():
-        with open("test.ll", "r") as f:
+        filename = sys.argv[1] if len(sys.argv) > 0 else "test.ll"
+
+        with open(os.path.abspath(filename), "r") as f:
             script = f.read()
 
-        lexer: Lexer = Lexer(filename="test.ll", text=script)
+        st = time.time()
+        lexer: Lexer = Lexer(filename=filename, text=script)
         tokens, error = lexer.make_tokens()
         if error:
             print(error.as_string())
@@ -47,10 +54,7 @@ if __name__ == "__main__":
 
         if result.error:
             print(result.error.as_string())
-        # elif result.value:
-        #     if len(result.value.elements) == 1:
-        #         print(result.value.elements[0])
-        #     else:
-        #         print(result.value.elements)
+
+        print(f"\nExecuted in: {time.time() - st} sec.")
 
     run()

@@ -143,7 +143,7 @@ class Interpreter:
             else_value = res.register(self.visit(expr, context))
             if res.should_return():
                 return res
-            return res.success(Number(0) if node.should_return_null else else_value)
+            return res.success(Number(0) if should_return_null else else_value)
 
         return res.success(Number(0))
 
