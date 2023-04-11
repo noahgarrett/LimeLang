@@ -1,5 +1,5 @@
 from resources import Token, TokenTypes, Position
-from resources import IllegalCharError, Error, ExpectedCharError
+from errors import IllegalCharError, Error, ExpectedCharError
 import string
 
 DIGITS: str = "0123456789"
@@ -10,7 +10,17 @@ KEYWORDS: list[str] = [
     "var",
     "and",
     "or",
-    "not"
+    "not",
+    "if",
+    "then",
+    "elif",
+    "else",
+    "for",
+    "to",
+    "step",
+    "while",
+    "fun",
+    "end"
 ]
 
 
@@ -33,16 +43,20 @@ class Lexer:
         while self.current_char is not None:
             if self.current_char in ' \t':
                 self.advance()
+            if self.current_char in ';\n':
+                tokens.append(Token(TokenTypes.TT_NEWLINE, pos_start=self.pos))
+                self.advance()
             elif self.current_char in DIGITS:
                 tokens.append(self.make_number())
             elif self.current_char in LETTERS:
                 tokens.append(self.make_identifier())
+            elif self.current_char == '"':
+                tokens.append(self.make_string())
             elif self.current_char == "+":
                 tokens.append(Token(TokenTypes.TT_PLUS, pos_start=self.pos))
                 self.advance()
             elif self.current_char == "-":
-                tokens.append(Token(TokenTypes.TT_MINUS, pos_start=self.pos))
-                self.advance()
+                tokens.append(self.make_minus_or_arrow())
             elif self.current_char == "*":
                 tokens.append(Token(TokenTypes.TT_MUL, pos_start=self.pos))
                 self.advance()
@@ -58,6 +72,12 @@ class Lexer:
             elif self.current_char == ")":
                 tokens.append(Token(TokenTypes.TT_RPAREN, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == "[":
+                tokens.append(Token(TokenTypes.TT_LSQUARE, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == "]":
+                tokens.append(Token(TokenTypes.TT_RSQUARE, pos_start=self.pos))
+                self.advance()
             elif self.current_char == "!":
                 token, error = self.make_not_equals()
                 if error:
@@ -69,6 +89,9 @@ class Lexer:
                 tokens.append(self.make_less_than())
             elif self.current_char == ">":
                 tokens.append(self.make_greater_than())
+            elif self.current_char == ",":
+                tokens.append(Token(TokenTypes.TT_COMMA, pos_start=self.pos))
+                self.advance()
             else:
                 pos_start = self.pos.copy()
                 char = self.current_char
@@ -100,6 +123,32 @@ class Lexer:
         else:
             return Token(TokenTypes.TT_FLOAT, float(num_str), pos_start=pos_start, pos_end=self.pos)
 
+    def make_string(self):
+        string = ''
+        pos_start = self.pos.copy()
+        escape_character = False
+        self.advance()
+
+        escape_characters = {
+            'n': '\n',
+            't': '\t'
+        }
+
+        while self.current_char is not None and (self.current_char != '"' or escape_character):
+            if escape_character:
+                string += escape_characters.get(self.current_char, self.current_char)
+            else:
+                if self.current_char == '\\':
+                    escape_character = True
+                else:
+                    string += self.current_char
+
+            self.advance()
+            escape_character = False
+
+        self.advance()
+        return Token(TokenTypes.TT_STRING, string, pos_start, self.pos)
+
     def make_identifier(self):
         id_str = ""
         pos_start = self.pos.copy()
@@ -110,6 +159,17 @@ class Lexer:
 
         tok_type = TokenTypes.TT_KEYWORD if id_str in KEYWORDS else TokenTypes.TT_IDENTIFIER
         return Token(tok_type, id_str, pos_start, self.pos)
+
+    def make_minus_or_arrow(self):
+        tok_type = TokenTypes.TT_MINUS
+        pos_start = self.pos.copy()
+        self.advance()
+
+        if self.current_char == '>':
+            self.advance()
+            tok_type = TokenTypes.TT_ARROW
+
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
 
     def make_not_equals(self):
         pos_start = self.pos.copy()
