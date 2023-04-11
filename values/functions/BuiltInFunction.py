@@ -168,3 +168,17 @@ class BuiltInFunction(BaseFunction):
 
     execute_extend.arg_names = ['listA', 'listB']
 
+    def execute_len(self, exec_ctx: Context):
+        list_ = exec_ctx.symbol_table.get("list")
+
+        if not isinstance(list_, List):
+            return RTResult().failure(RTError(
+                self.pos_start, self.pos_end,
+                "Argument must be a list",
+                exec_ctx
+            ))
+
+        return RTResult().success(Number(len(list_.elements)))
+
+    execute_len.arg_names = ["list"]
+

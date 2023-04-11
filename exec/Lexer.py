@@ -20,7 +20,10 @@ KEYWORDS: list[str] = [
     "step",
     "while",
     "fun",
-    "end"
+    "end",
+    "return",
+    "continue",
+    "break"
 ]
 
 
@@ -43,7 +46,9 @@ class Lexer:
         while self.current_char is not None:
             if self.current_char in ' \t':
                 self.advance()
-            if self.current_char in ';\n':
+            elif self.current_char == "#":
+                self.skip_comment()
+            elif self.current_char in ';\n':
                 tokens.append(Token(TokenTypes.TT_NEWLINE, pos_start=self.pos))
                 self.advance()
             elif self.current_char in DIGITS:
@@ -96,6 +101,7 @@ class Lexer:
                 pos_start = self.pos.copy()
                 char = self.current_char
                 self.advance()
+                print(f"Character = '{char}'")
                 return [], IllegalCharError(pos_start, self.pos, f"'{char}'")
 
         tokens.append(Token(TokenTypes.TT_EOF, pos_start=self.pos))
@@ -214,3 +220,11 @@ class Lexer:
             token_type = TokenTypes.TT_GTE
 
         return Token(token_type, pos_start=pos_start, pos_end=self.pos)
+
+    def skip_comment(self):
+        self.advance()
+
+        while self.current_char != '\n':
+            self.advance()
+
+        self.advance()

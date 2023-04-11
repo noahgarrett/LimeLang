@@ -2,6 +2,7 @@ from exec import Lexer, Parser, Interpreter
 from resources import Context, SymbolTable
 from values import Number, BuiltInFunction
 
+
 if __name__ == "__main__":
     global_symbol_table = SymbolTable()
     global_symbol_table.set("null", Number(0))
@@ -20,30 +21,25 @@ if __name__ == "__main__":
     global_symbol_table.set("append", BuiltInFunction("append"))
     global_symbol_table.set("pop", BuiltInFunction("pop"))
     global_symbol_table.set("extend", BuiltInFunction("extend"))
+    global_symbol_table.set("len", BuiltInFunction("len"))
 
-    while True:
-        text = input("LimeLang > ")
+    def run():
+        with open("test.ll", "r") as f:
+            script = f.read()
 
-        if text.strip() == "":
-            continue
-
-        # Generate Tokens
-        lexer: Lexer = Lexer(filename="<stdin>", text=text)
+        lexer: Lexer = Lexer(filename="test.ll", text=script)
         tokens, error = lexer.make_tokens()
-
         if error:
             print(error.as_string())
-            break
+            return
 
-        # Generate AST
         parser: Parser = Parser(tokens)
         ast = parser.parse()
 
         if ast.error:
             print(ast.error.as_string())
-            break
+            return
 
-        # Run Program
         interpreter: Interpreter = Interpreter()
         context: Context = Context("<program>")
         context.symbol_table = global_symbol_table
@@ -51,8 +47,10 @@ if __name__ == "__main__":
 
         if result.error:
             print(result.error.as_string())
-        elif result.value:
-            if len(result.value.elements) == 1:
-                print(result.value.elements[0])
-            else:
-                print(result.value.elements)
+        # elif result.value:
+        #     if len(result.value.elements) == 1:
+        #         print(result.value.elements[0])
+        #     else:
+        #         print(result.value.elements)
+
+    run()
