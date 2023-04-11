@@ -1,9 +1,9 @@
 
 
 class SymbolTable:
-    def __init__(self):
+    def __init__(self, parent: dict | None = None):
         self.symbols: dict = {}
-        self.parent: dict | None = None
+        self.parent: dict | None = parent
 
     def get(self, name):
         value = self.symbols.get(name, None)
