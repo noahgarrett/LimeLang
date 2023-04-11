@@ -1,19 +1,46 @@
 # LimeLang
 
-Add, Subtract, Multiply, Divide, Power, and Variables
+None of the features, all of the fun
 
-```commandline
-LimeLang > var a = 1
-1
-LimeLang > var b = 2
-2
-LimeLang > a + b
-3
+```python
+# LimeLang
+
+fun oopify(prefix) -> prefix + "oop"
+
+fun join(elements, separator)
+	var result = ""
+	var len = len(elements)
+
+	for i = 0 to len then
+		var result = result + elements/i
+		if i != len - 1 then var result = result + separator
+	end
+
+	return result
+end
+
+fun map(elements, func)
+	var new_elements = []
+
+	for i = 0 to len(elements) then
+		append(new_elements, func(elements/i))
+	end
+
+	return new_elements
+end
+
+print("Greetings universe!")
+
+for i = 0 to 5 then
+	print(join(map(["l", "sp"], oopify), ", "))
+end
 ```
 
 ```commandline
-LimeLang > var a = 10
-10
-LimeLang > (25 + a) / a ^ 10
-3.5e-09
+Greetings universe!
+loop, spoop
+loop, spoop
+loop, spoop
+loop, spoop
+loop, spoop
 ```
