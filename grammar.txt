@@ -20,21 +20,34 @@ factor      : (PLUS|MINUS) factor
 
 power       : call (POW factor)*
 
-call        : atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
+call        : call-def
+            : atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
 
-atom        : INT|FLOAT|STRING|IDENTIFIER
+call-def    : (IDENTIFIER DOT)? atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
+
+atom        : INT|FLOAT|STRING
+            : IDENTIFIER | IDENTIFIER LSQUARE expr RSQUARE
             : LPAREN expr RPAREN
+            : import-from-expr
+            : import-expr
+            : dict-expr
             : list-expr
             : if-expr
             : for-expr
             : while-expr
             : func-def
 
-list-expr   : LSQUARE (expr (COMMA expr)*)? RSQUARE
+import-expr         : KEYWORD:import STRING SEMI
 
-if-expr     : KEYWORD:IF expr LBRACE
-                (statement if-expr-b|if-expr-c?)
-            | (NEWLINE statements RBRACE|if-expr-b|if-expr-c)
+import-from-expr    : KEYWORD:from STRING KEYWORD:import STRING SEMI
+
+dict-expr           : LBRACE ((IDENTIFIER COLON expr COMMA?)*)? RBRACE
+
+list-expr           : LSQUARE (expr (COMMA expr)*)? RSQUARE
+
+if-expr             : KEYWORD:IF expr LBRACE
+                        (statement if-expr-b|if-expr-c?)
+                    | (NEWLINE statements RBRACE|if-expr-b|if-expr-c)
 
 if-expr-b   : KEYWORD:ELIF expr LBRACE
                 (statement if-expr-b|if-expr-c?)

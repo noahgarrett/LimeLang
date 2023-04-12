@@ -48,8 +48,10 @@ works()
 `+, -, +, /, ^`
 
 ## Types
-`int, float, string, list`
+`int, float, string, list, dict`
 - Booleans are represented as a 0 or 1
+- Access dicts: `dictionary["key"]`
+- Access lists: `list[0]`
 
 ## Built-In Functions
 - `print(<value>) -> Null`

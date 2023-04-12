@@ -1,10 +1,13 @@
 from resources import NumberNode, BinOpNode, UnaryOpNode, VarAssignNode, VarAccessNode, IfNode, ForNode
 from resources import WhileNode, FuncDefNode, CallNode, StringNode, ListNode, ReturnNode, ContinueNode, BreakNode
+from resources import DictNode, VarExtendedAccessNode, ImportNode
 from resources import TokenTypes
 from resources import Context
 from results import RTResult
 from errors import RTError
-from values import Number, Function, String, List
+from values import Number, Function, String, List, Dict, PalletFunction
+import os
+import importlib
 
 
 class Interpreter:
@@ -42,6 +45,19 @@ class Interpreter:
             List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
+    def visit_DictNode(self, node: DictNode, context: Context):
+        res: RTResult = RTResult()
+        dict_ = {}
+
+        for key in node.node_dict:
+            dict_[key] = res.register(self.visit(node.node_dict[key], context))
+            if res.should_return():
+                return res
+
+        return res.success(
+            Dict(dict_).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
+
     def visit_VarAccessNode(self, node: VarAccessNode, context: Context):
         res: RTResult = RTResult()
         var_name = node.var_name_tok.value
@@ -54,6 +70,48 @@ class Interpreter:
 
         value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return res.success(value)
+
+    def visit_VarExtendedAccessNode(self, node: VarExtendedAccessNode, context: Context):
+        res: RTResult = RTResult()
+        var_name = node.var_name_tok.value
+
+        if node.key_token.type == TokenTypes.TT_IDENTIFIER:
+            key_name = context.symbol_table.get(node.key_token.value).value
+        else:
+            key_name = node.key_token.value
+
+        var_value = context.symbol_table.get(var_name)
+        if not var_value:
+            return res.failure(RTError(
+                node.pos_start, node.pos_end, f"'{var_name}' is not defined", context
+            ))
+
+        if isinstance(var_value, Dict):
+            try:
+                key_value = var_value.dict[key_name]
+            except:
+                key_value = None
+
+            if key_value is None:
+                return res.failure(RTError(
+                    node.pos_start, node.pos_end, f"'{key_name}' was not found", context
+                ))
+
+            value = key_value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
+            return res.success(value)
+        elif isinstance(var_value, List):
+            try:
+                key_value = var_value.elements[key_name]
+            except:
+                key_value = None
+
+            if key_value is None:
+                return res.failure(RTError(
+                    node.pos_start, node.pos_end, f"Item at index {key_name} does not exist", context
+                ))
+
+            value = key_value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
+            return res.success(value)
 
     def visit_VarAssignNode(self, node: VarAssignNode, context: Context):
         res: RTResult = RTResult()
@@ -277,3 +335,21 @@ class Interpreter:
 
     def visit_BreakNode(self, node: ContinueNode, context: Context):
         return RTResult().success_break()
+
+    def visit_ImportNode(self, node: ImportNode, context: Context):
+        res: RTResult = RTResult()
+        is_internal = True
+
+        # See if it is an internal or external pallet
+        try:
+            pallet = importlib.import_module(f"internal_pallets.{node.pallet_name_to_import}.main")
+            pallet_class = pallet.import_pallet()
+
+            # Add the function keywords into the symbol table
+            for func_name in pallet_class.functions:
+                call_name = f"{node.pallet_name_to_import}.{func_name}"
+                context.symbol_table.set(call_name, PalletFunction(call_name, pallet_class))
+
+            return res.success_import()
+        except ImportError:
+            is_internal = False

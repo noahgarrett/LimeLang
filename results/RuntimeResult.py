@@ -23,6 +23,10 @@ class RTResult:
         self.value = value
         return self
 
+    def success_import(self):
+        self.reset()
+        return self
+
     def success_return(self, value):
         self.reset()
         self.func_return_value = value

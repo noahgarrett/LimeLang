@@ -28,7 +28,9 @@ if __name__ == "__main__":
     global_symbol_table.set("len", BuiltInFunction("len"))
 
     def run():
-        filename = sys.argv[1] if len(sys.argv) > 0 else "test.ll"
+        filename = "test.ll"
+        if len(sys.argv) > 1:
+            filename = sys.argv[1]
 
         with open(os.path.abspath(filename), "r") as f:
             script = f.read()

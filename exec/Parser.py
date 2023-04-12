@@ -1,6 +1,7 @@
 from resources import Token, TokenTypes
 from resources import NumberNode, BinOpNode, UnaryOpNode, VarAccessNode, VarAssignNode, IfNode, ForNode, WhileNode
-from resources import FuncDefNode, CallNode, StringNode, ListNode, ReturnNode, BreakNode, ContinueNode
+from resources import FuncDefNode, CallNode, StringNode, ListNode, ReturnNode, BreakNode, ContinueNode, DictNode
+from resources import VarExtendedAccessNode, ImportNode
 from results import ParseResult
 from errors import InvalidSyntaxError
 
@@ -387,7 +388,8 @@ class Parser:
                 res.register_advancement()
                 self.advance()
 
-                if self.current_tok.matches(TokenTypes.TT_KEYWORD, 'elif') or self.current_tok.matches(TokenTypes.TT_KEYWORD, 'else'):
+                if self.current_tok.matches(TokenTypes.TT_KEYWORD, 'elif') or self.current_tok.matches(
+                        TokenTypes.TT_KEYWORD, 'else'):
                     all_cases = res.register(self.if_expr_b_or_c())
                     if res.error:
                         return res
@@ -461,6 +463,101 @@ class Parser:
             element_nodes, pos_start, self.current_tok.pos_end.copy()
         ))
 
+    def dict_expr(self):
+        res: ParseResult = ParseResult()
+        node_dict = {}
+        pos_start = self.current_tok.pos_start.copy()
+
+        if self.current_tok.type != TokenTypes.TT_LBRACE:
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected '{'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type == TokenTypes.TT_RBRACE:
+            res.register_advancement()
+            self.advance()
+        else:
+            while True:
+                if not self.current_tok.type == TokenTypes.TT_IDENTIFIER:
+                    return res.failure(InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "Expected identifier / dict key"
+                    ))
+
+                dict_key = self.current_tok.value
+
+                res.register_advancement()
+                self.advance()
+
+                if not self.current_tok.type == TokenTypes.TT_COLON:
+                    return res.failure(InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "Expected ':'"
+                    ))
+
+                res.register_advancement()
+                self.advance()
+
+                node_dict[dict_key] = res.register(self.expression())
+                if res.error:
+                    return res.failure(InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "Expected ']', 'var', 'if', 'for', 'while', 'fun', int, float, identifier, 'not', '+', '-', '[' "
+                        "or '('"
+                    ))
+
+                if self.current_tok.type == TokenTypes.TT_COMMA:
+                    res.register_advancement()
+                    self.advance()
+                    continue
+
+                if not self.current_tok.type == TokenTypes.TT_RBRACE:
+                    return res.failure(InvalidSyntaxError(
+                        self.current_tok.pos_start, self.current_tok.pos_end,
+                        "Expected '}'"
+                    ))
+
+                res.register_advancement()
+                self.advance()
+                break
+
+        return res.success(DictNode(node_dict, pos_start, self.current_tok.pos_end.copy()))
+
+    def import_from_expr(self):
+        res: ParseResult = ParseResult()
+        pos_start = self.current_tok.pos_start.copy()
+
+    def import_expr(self):
+        res: ParseResult = ParseResult()
+        pos_start = self.current_tok.pos_start.copy()
+
+        res.register_advancement()
+        self.advance()
+
+        if not self.current_tok.type == TokenTypes.TT_STRING:
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected 'STRING'"
+            ))
+
+        pallet_name_to_import = self.current_tok.value
+        res.register_advancement()
+        self.advance()
+
+        if not self.current_tok.type == TokenTypes.TT_SEMI:
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected ';'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+        return res.success(ImportNode(pallet_name_to_import, pos_start, self.current_tok.pos_end.copy()))
+
     def atom(self):
         res: ParseResult = ParseResult()
         token = self.current_tok
@@ -477,7 +574,33 @@ class Parser:
         elif token.type == TokenTypes.TT_IDENTIFIER:
             res.register_advancement()
             self.advance()
-            return res.success(VarAccessNode(token))
+
+            # Var access
+            if self.current_tok.type != TokenTypes.TT_LSQUARE:
+                return res.success(VarAccessNode(token))
+
+            var_name_tok = token
+            res.register_advancement()
+            self.advance()
+
+            if self.current_tok.type not in (TokenTypes.TT_STRING, TokenTypes.TT_INT, TokenTypes.TT_IDENTIFIER):
+                return res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end, "Expected string, int, or identifier"
+                ))
+
+            key_token = self.current_tok
+            res.register_advancement()
+            self.advance()
+
+            if not self.current_tok.type == TokenTypes.TT_RSQUARE:
+                return res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end, "Expected ']'"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+            return res.success(VarExtendedAccessNode(var_name_tok, key_token))
         elif token.type == TokenTypes.TT_LPAREN:
             """atom  : LPAREN expr RPAREN"""
             res.register_advancement()
@@ -493,6 +616,21 @@ class Parser:
                 return res.failure(InvalidSyntaxError(
                     self.current_tok.pos_start, self.current_tok.pos_end, "Expected ')'"
                 ))
+        elif token.matches(TokenTypes.TT_KEYWORD, "import"):
+            import_expr = res.register(self.import_expr())
+            if res.error:
+                return res
+            return res.success(import_expr)
+        elif token.matches(TokenTypes.TT_KEYWORD, "from"):
+            import_from_expr = res.register(self.import_from_expr())
+            if res.error:
+                return res
+            return res.success(import_from_expr)
+        elif token.type == TokenTypes.TT_LBRACE:
+            dict_expr = res.register(self.dict_expr())
+            if res.error:
+                return res
+            return res.success(dict_expr)
         elif token.type == TokenTypes.TT_LSQUARE:
             list_expr = res.register(self.list_expr())
             if res.error:
@@ -524,8 +662,21 @@ class Parser:
             "Expected int, float, identifier, '[', '+', '-', 'if', 'for', 'while', 'fun' or '('"
         ))
 
+    def call_def(self):
+        res: ParseResult = ParseResult()
+
     def call(self):
         res: ParseResult = ParseResult()
+
+        # if self.current_tok.type == TokenTypes.TT_IDENTIFIER:
+        #     next_token = self.advance()
+        #     if not next_token.type == TokenTypes.TT_DOT:
+        #         self.reverse()
+        #     # We are calling a function on an identifier/pallet/class
+        #     call_def = res.register(self.call_def())
+        #     if res.error:
+        #         return res
+        #     return res.success(CallNode(call_def, []))
 
         atom = res.register(self.atom())
         if res.error:

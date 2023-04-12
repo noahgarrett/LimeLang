@@ -23,7 +23,9 @@ KEYWORDS: list[str] = [
     "end",
     "return",
     "continue",
-    "break"
+    "break",
+    "from",
+    "import"
 ]
 
 
@@ -48,7 +50,7 @@ class Lexer:
                 self.advance()
             elif self.current_char == "#":
                 self.skip_comment()
-            elif self.current_char in ';\n':
+            elif self.current_char in '\n':
                 tokens.append(Token(TokenTypes.TT_NEWLINE, pos_start=self.pos))
                 self.advance()
             elif self.current_char in DIGITS:
@@ -103,6 +105,15 @@ class Lexer:
             elif self.current_char == ",":
                 tokens.append(Token(TokenTypes.TT_COMMA, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == ":":
+                tokens.append(Token(TokenTypes.TT_COLON, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == ";":
+                tokens.append(Token(TokenTypes.TT_SEMI, pos_start=self.pos))
+                self.advance()
+            # elif self.current_char == ".":
+            #     tokens.append(Token(TokenTypes.TT_DOT, pos_start=self.pos))
+            #     self.advance()
             else:
                 pos_start = self.pos.copy()
                 char = self.current_char
@@ -165,7 +176,7 @@ class Lexer:
         id_str = ""
         pos_start = self.pos.copy()
 
-        while self.current_char is not None and self.current_char in LETTERS_DIGITS + "_":
+        while self.current_char is not None and self.current_char in LETTERS_DIGITS + "_.":
             id_str += self.current_char
             self.advance()
 

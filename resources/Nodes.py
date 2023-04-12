@@ -28,10 +28,25 @@ class ListNode:
         self.pos_end = pos_end
 
 
+class DictNode:
+    def __init__(self, node_dict, pos_start, pos_end):
+        self.node_dict = node_dict
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+
+
 class VarAccessNode:
     def __init__(self, var_name_tok: Token):
         self.var_name_tok = var_name_tok
 
+        self.pos_start = self.var_name_tok.pos_start
+        self.pos_end = self.var_name_tok.pos_end
+
+
+class VarExtendedAccessNode:
+    def __init__(self, var_name_tok: Token, key_token: Token):
+        self.var_name_tok = var_name_tok
+        self.key_token = key_token
         self.pos_start = self.var_name_tok.pos_start
         self.pos_end = self.var_name_tok.pos_end
 
@@ -147,5 +162,12 @@ class ContinueNode:
 
 class BreakNode:
     def __init__(self, pos_start, pos_end):
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+
+
+class ImportNode:
+    def __init__(self, pallet_name_to_import, pos_start, pos_end):
+        self.pallet_name_to_import = pallet_name_to_import
         self.pos_start = pos_start
         self.pos_end = pos_end
