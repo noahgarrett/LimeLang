@@ -1,3 +1,1 @@
-import "requests";
-
-print("apples")
+print("yes")

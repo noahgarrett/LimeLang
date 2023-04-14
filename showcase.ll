@@ -1,17 +1,3 @@
-# LimeLang
-
-None of the features, all the fun
-
-## Installation + Usage
-- Download `lime.exe` from the releases tab
-  - Optionally you can set this file location of lime.exe to your PATH
-- Put the `lime.exe` file in the folder that houses you `.ll` files
-- Run `lime.exe <file_name>`
-  - Ex. `lime.exe test.ll`
-
-## LimeLang Program
-``showcase.ll``
-```python
 # LimeLang Showcase
 
 # Import Statements (Horribly Implemented)
@@ -79,25 +65,5 @@ if testValue == 1 and 15 == 15 {
 } else {
     print("else condition")
 }
-```
 
-## Arithmetics
-`+, -, +, /, ^`
 
-## Types
-`int, float, string, list, dict`
-- Booleans are represented as a 0 or 1
-- Access dicts: `dictionary["key"]`
-- Access lists: `list[0]`
-
-## Built-In Functions
-- `print(<value>) -> Null`
-- `input() -> <str>`
-- `is_number(<value>) -> <0|1>`
-- `is_string(<value>) -> <0|1>`
-- `is_list(<value>) -> <0|1>`
-- `is_function(<value>) -> <0|1>`
-- `append((<list>) -> Null`
-- `pop(<list>, <index>) -> <element>`
-- `extend(<listA>, <listB>) -> <0|1>`
-- `len(<list>) -> <int>`
