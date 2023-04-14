@@ -18,6 +18,8 @@ KEYWORDS: list[str] = [
     "for",
     "to",
     "step",
+    "foreach",
+    "in",
     "while",
     "fun",
     "end",

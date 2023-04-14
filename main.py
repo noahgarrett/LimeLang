@@ -45,6 +45,8 @@ if __name__ == "__main__":
         parser: Parser = Parser(tokens)
         ast = parser.parse()
 
+        print(ast.node.element_nodes)
+
         if ast.error:
             print(ast.error.as_string())
             return

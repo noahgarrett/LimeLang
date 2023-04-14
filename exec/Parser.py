@@ -1,7 +1,7 @@
 from resources import Token, TokenTypes
 from resources import NumberNode, BinOpNode, UnaryOpNode, VarAccessNode, VarAssignNode, IfNode, ForNode, WhileNode
 from resources import FuncDefNode, CallNode, StringNode, ListNode, ReturnNode, BreakNode, ContinueNode, DictNode
-from resources import VarExtendedAccessNode, ImportNode
+from resources import VarExtendedAccessNode, ImportNode, ForEachNode
 from results import ParseResult
 from errors import InvalidSyntaxError
 
@@ -232,6 +232,80 @@ class Parser:
             return res
 
         return res.success(ForNode(var_name, start_value, end_value, step_value, body, False))
+
+    def foreach_expr(self):
+        res: ParseResult = ParseResult()
+        pos_start = self.current_tok.pos_start.copy()
+
+        if not self.current_tok.matches(TokenTypes.TT_KEYWORD, "foreach"):
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"Expected 'foreach'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        if not self.current_tok.type == TokenTypes.TT_IDENTIFIER:
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"Expected 'identifier'"
+            ))
+
+        temp_var_name_token = self.current_tok
+        res.register_advancement()
+        self.advance()
+
+        if not self.current_tok.matches(TokenTypes.TT_KEYWORD, "in"):
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                f"Expected 'in'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        looping_var_name_token = res.register(self.expression())
+        if res.error:
+            return res
+
+        if not self.current_tok.type == TokenTypes.TT_LBRACE:
+            return res.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end,
+                "Expected '{'"
+            ))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type == TokenTypes.TT_NEWLINE:
+            res.register_advancement()
+            self.advance()
+
+            body = res.register(self.statements())
+            if res.error:
+                return res
+
+            if not self.current_tok.type == TokenTypes.TT_RBRACE:  # .matches(TokenTypes.TT_KEYWORD, "end")
+                return res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "Expected '}'"
+                ))
+
+            res.register_advancement()
+            self.advance()
+
+            return res.success(ForEachNode(
+                temp_var_name_token, looping_var_name_token, body, True
+            ))
+
+        body = res.register(self.statement())
+        if res.error:
+            return res
+
+        return res.success(ForEachNode(
+                temp_var_name_token, looping_var_name_token, body, False
+            ))
 
     def while_expr(self):
         res: ParseResult = ParseResult()
@@ -646,6 +720,11 @@ class Parser:
             if res.error:
                 return res
             return res.success(for_expr)
+        elif token.matches(TokenTypes.TT_KEYWORD, "foreach"):
+            foreach_expr = res.register(self.foreach_expr())
+            if res.error:
+                return res
+            return res.success(foreach_expr)
         elif token.matches(TokenTypes.TT_KEYWORD, "while"):
             while_expr = res.register(self.while_expr())
             if res.error:

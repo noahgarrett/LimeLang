@@ -34,6 +34,7 @@ atom        : INT|FLOAT|STRING
             : list-expr
             : if-expr
             : for-expr
+            : foreach-expr
             : while-expr
             : func-def
 
@@ -61,6 +62,9 @@ for-expr    : KEYWORD:FOR IDENTIFIER EQ expr KEYWORD:TO expr
                 (KEYWORD:STEP expr)? LBRACE
               statement
             | (NEWLINE statements RBRACE)
+
+foreach-expr: KEYWORD:foreach IDENTIFIER KEYWORD:in expr
+                LBRACE (statement | (NEWLINE statements)) RBRACE
 
 while-expr  : KEYWORD:WHILE expr LBRACE
               statement

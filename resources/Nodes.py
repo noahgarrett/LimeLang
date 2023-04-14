@@ -107,6 +107,17 @@ class ForNode:
         self.pos_end = self.body_node.pos_end
 
 
+class ForEachNode:
+    def __init__(self, temp_var_name_tok, looping_var_name_tok, body_node, should_return_null):
+        self.temp_var_name_tok = temp_var_name_tok
+        self.looping_var_name_tok = looping_var_name_tok
+        self.body_node = body_node
+        self.should_return_null = should_return_null
+
+        self.pos_start = self.temp_var_name_tok.pos_start
+        self.pos_end = self.body_node.pos_end
+
+
 class WhileNode:
     def __init__(self, condition_node, body_node, should_return_null):
         self.condition_node = condition_node

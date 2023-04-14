@@ -1,6 +1,6 @@
 from resources import NumberNode, BinOpNode, UnaryOpNode, VarAssignNode, VarAccessNode, IfNode, ForNode
 from resources import WhileNode, FuncDefNode, CallNode, StringNode, ListNode, ReturnNode, ContinueNode, BreakNode
-from resources import DictNode, VarExtendedAccessNode, ImportNode
+from resources import DictNode, VarExtendedAccessNode, ImportNode, ForEachNode
 from resources import TokenTypes
 from resources import Context
 from results import RTResult
@@ -353,3 +353,13 @@ class Interpreter:
             return res.success_import()
         except ImportError:
             is_internal = False
+
+    def visit_ForEachNode(self, node: ForEachNode, context: Context):
+        res: RTResult = RTResult()
+        elements = []
+
+        temp_value_node = node.temp_var_name_tok
+
+        looping_value_node = res.register(self.visit(node.looping_var_name_tok, context))
+        if res.should_return():
+            return res
