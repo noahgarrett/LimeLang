@@ -76,7 +76,10 @@ class Interpreter:
         var_name = node.var_name_tok.value
 
         if node.key_token.type == TokenTypes.TT_IDENTIFIER:
-            key_name = context.symbol_table.get(node.key_token.value).value
+            try:
+                key_name = context.symbol_table.get(node.key_token.value).value
+            except:
+                key_name = context.symbol_table.get(node.key_token.value)
         else:
             key_name = node.key_token.value
 
@@ -358,8 +361,53 @@ class Interpreter:
         res: RTResult = RTResult()
         elements = []
 
-        temp_value_node = node.temp_var_name_tok
-
         looping_value_node = res.register(self.visit(node.looping_var_name_tok, context))
         if res.should_return():
             return res
+
+        if isinstance(looping_value_node, Dict):
+            # Handle looping through dictionary
+            for element in looping_value_node.dict:
+                context.symbol_table.set(node.temp_var_name_tok.value, element)
+                value = res.register(self.visit(node.body_node, context))
+                if res.should_return() and res.loop_should_continue is False and res.loop_should_break is False:
+                    return res
+
+                if res.loop_should_continue:
+                    continue
+
+                if res.loop_should_break:
+                    break
+
+                elements.append(value)
+
+            return res.success(
+                Number(0) if node.should_return_null else
+                List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+            )
+        elif isinstance(looping_value_node, List):
+            # Handle looping through list
+            for element in looping_value_node.elements:
+                context.symbol_table.set(node.temp_var_name_tok.value, element)
+                value = res.register(self.visit(node.body_node, context))
+                if res.should_return() and res.loop_should_continue is False and res.loop_should_break is False:
+                    return res
+
+                if res.loop_should_continue:
+                    continue
+
+                if res.loop_should_break:
+                    break
+
+                elements.append(value)
+
+            return res.success(
+                Number(0) if node.should_return_null else
+                List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+            )
+
+        else:
+            return res.failure(RTError(
+                node.pos_start, node.pos_end, "Invalid looping type", context
+            ))
+
