@@ -25,7 +25,7 @@ call        : call-def
 
 call-def    : (IDENTIFIER DOT)? atom (LPAREN (expr (COMMA expr)*)? RPAREN)?
 
-atom        : INT|FLOAT|STRING
+atom        : INT|FLOAT|STRING|MULTI_STRING
             : IDENTIFIER | IDENTIFIER LSQUARE expr RSQUARE
             : LPAREN expr RPAREN
             : import-from-expr

@@ -1,11 +1,11 @@
 from resources import NumberNode, BinOpNode, UnaryOpNode, VarAssignNode, VarAccessNode, IfNode, ForNode
 from resources import WhileNode, FuncDefNode, CallNode, StringNode, ListNode, ReturnNode, ContinueNode, BreakNode
-from resources import DictNode, VarExtendedAccessNode, ImportNode, ForEachNode
-from resources import TokenTypes
+from resources import DictNode, VarExtendedAccessNode, ImportNode, ForEachNode, StringMultiNode
+from resources import TokenTypes, Token
 from resources import Context
 from results import RTResult
 from errors import RTError
-from values import Number, Function, String, List, Dict, PalletFunction
+from values import Number, Function, String, List, Dict, PalletFunction, StringMulti
 import os
 import importlib
 
@@ -30,6 +30,11 @@ class Interpreter:
     def visit_StringNode(self, node: StringNode, context: Context):
         return RTResult().success(
             String(node.token.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+        )
+
+    def visit_StringMultiNode(self, node: StringNode, context: Context):
+        return RTResult().success(
+            StringMulti(node.token.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
 
     def visit_ListNode(self, node: ListNode, context: Context):
@@ -92,6 +97,15 @@ class Interpreter:
         if isinstance(var_value, Dict):
             try:
                 key_value = var_value.dict[key_name]
+
+                if isinstance(key_value, int):
+                    key_value = Number(value=key_value)
+                elif isinstance(key_value, str):
+                    key_value = String(value=key_value)
+                elif isinstance(key_value, list):
+                    key_value = List(elements=key_value)
+                elif isinstance(key_value, dict):
+                    key_value = Dict(dict_=key_value)
             except:
                 key_value = None
 

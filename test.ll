@@ -1,9 +1,10 @@
-var elements = [1, 2, 3, 4, 5]
-foreach element in elements {
-    print(element)
-}
+var pythonCode = """
+from requests import get
 
-var obj = {id: 0, name: "Applebees", color: "red"}
-foreach key in obj {
-    print(obj[key])
-}
+json = get('https://jsonplaceholder.typicode.com/todos/1').json()
+"""
+
+var a = exec(pythonCode)
+var json = a["json"]
+print(json)
+print("Title: " + json["title"])

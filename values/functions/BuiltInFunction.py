@@ -1,4 +1,4 @@
-from values import BaseFunction, Number, String, List
+from values import BaseFunction, Number, String, List, Dict
 from results import RTResult
 from errors import RTError
 from resources import Context
@@ -39,6 +39,19 @@ class BuiltInFunction(BaseFunction):
         raise Exception(f'No execute_{self.name} method defined')
 
     # Built-In Functions
+    def execute_exec(self, exec_ctx: Context):
+        local_env = {}
+        code = exec_ctx.symbol_table.get("python_code").value
+        exec(code, globals(), local_env)
+
+        # Convert python dict to Lime dict
+        env_str = str(local_env)
+        env_str.replace("'", "")
+
+        return RTResult().success(Dict(local_env))
+
+    execute_exec.arg_names = ['python_code']
+
     def execute_print(self, exec_ctx: Context):
         print(str(exec_ctx.symbol_table.get("value")))
         return RTResult().success(Number(0))

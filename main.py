@@ -26,6 +26,7 @@ if __name__ == "__main__":
     global_symbol_table.set("pop", BuiltInFunction("pop"))
     global_symbol_table.set("extend", BuiltInFunction("extend"))
     global_symbol_table.set("len", BuiltInFunction("len"))
+    global_symbol_table.set("exec", BuiltInFunction("exec"))
 
     def run():
         filename = "test.ll"
@@ -42,10 +43,12 @@ if __name__ == "__main__":
             print(error.as_string())
             return
 
+        # print(f"Lexer: {tokens}")
+
         parser: Parser = Parser(tokens)
         ast = parser.parse()
 
-        print(ast.node.element_nodes)
+        # print(f"Parser: {ast.node.element_nodes}\n")
 
         if ast.error:
             print(ast.error.as_string())

@@ -77,4 +77,18 @@ if testValue == 1 and 15 == 15 {
     print("else condition")
 }
 
+# Executing python code (Must only be used with multi-line strings)
+# This returns back a dict with all local variables set
+var pythonCode = """
+def spam():
+    spam_count = 0
+    for i in range(5):
+        print('SPAM')
+        spam_count += 1
+    return spam_count
 
+spam_count = spam()
+"""
+
+var spam = exec(pythonCode)
+print(spam["spam_count"])

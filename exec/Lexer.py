@@ -44,6 +44,10 @@ class Lexer:
         self.pos.advance(self.current_char)
         self.current_char = self.text[self.pos.index] if self.pos.index < len(self.text) else None
 
+    def reverse(self, amount=1):
+        self.pos.reverse(amount)
+        self.current_char = self.text[self.pos.index] if self.pos.index < len(self.text) else None
+
     def make_tokens(self) -> tuple[list[Token], Error | None]:
         tokens: list[Token] = []
 
@@ -60,7 +64,10 @@ class Lexer:
             elif self.current_char in LETTERS:
                 tokens.append(self.make_identifier())
             elif self.current_char == '"':
-                tokens.append(self.make_string())
+                token, error = self.make_string()
+                if error:
+                    return [], error
+                tokens.append(token)
             elif self.current_char == "+":
                 tokens.append(Token(TokenTypes.TT_PLUS, pos_start=self.pos))
                 self.advance()
@@ -152,6 +159,7 @@ class Lexer:
         string = ''
         pos_start = self.pos.copy()
         escape_character = False
+        is_multi_line = False
         self.advance()
 
         escape_characters = {
@@ -159,20 +167,44 @@ class Lexer:
             't': '\t'
         }
 
-        while self.current_char is not None and (self.current_char != '"' or escape_character):
-            if escape_character:
-                string += escape_characters.get(self.current_char, self.current_char)
-            else:
-                if self.current_char == '\\':
-                    escape_character = True
-                else:
-                    string += self.current_char
-
+        advance_count = 0
+        if self.current_char == '"':
             self.advance()
-            escape_character = False
+            advance_count += 1
+            if self.current_char == '"':
+                self.advance()
+                advance_count += 1
+                is_multi_line = True
+            else:
+                self.reverse(advance_count)
+
+        if is_multi_line:
+            while self.current_char is not None and self.current_char != '"':
+                string += self.current_char
+                self.advance()
+
+            ending_count = 0
+            for i in range(3):
+                if self.current_char == '"':
+                    ending_count += 1
+                    self.advance()
+            if not ending_count == 3:
+                return None, ExpectedCharError(pos_start, self.pos, 'Expected """ closing the multi-string')
+        else:
+            while self.current_char is not None and (self.current_char != '"' or escape_character):
+                if escape_character:
+                    string += escape_characters.get(self.current_char, self.current_char)
+                else:
+                    if self.current_char == '\\':
+                        escape_character = True
+                    else:
+                        string += self.current_char
+
+                self.advance()
+                escape_character = False
 
         self.advance()
-        return Token(TokenTypes.TT_STRING, string, pos_start, self.pos)
+        return Token(TokenTypes.TT_STRING if not is_multi_line else TokenTypes.TT_MULTI_STRING, string, pos_start, self.pos), None
 
     def make_identifier(self):
         id_str = ""

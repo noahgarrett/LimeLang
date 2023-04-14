@@ -18,5 +18,11 @@ class Position:
 
         return self
 
+    def reverse(self, amount=1):
+        self.index -= amount
+        self.column -= amount
+
+        return self
+
     def copy(self):
         return Position(self.index, self.lineno, self.column, self.filename, self.file_text)

@@ -4,6 +4,7 @@ from values.BaseFunction import BaseFunction
 
 # Types
 from values.types.String import String
+from values.types.StringMulti import StringMulti
 from values.types.Number import Number
 from values.types.List import List
 from values.types.Dict import Dict

@@ -1,7 +1,7 @@
 from resources import Token, TokenTypes
 from resources import NumberNode, BinOpNode, UnaryOpNode, VarAccessNode, VarAssignNode, IfNode, ForNode, WhileNode
 from resources import FuncDefNode, CallNode, StringNode, ListNode, ReturnNode, BreakNode, ContinueNode, DictNode
-from resources import VarExtendedAccessNode, ImportNode, ForEachNode
+from resources import VarExtendedAccessNode, ImportNode, ForEachNode, StringMultiNode
 from results import ParseResult
 from errors import InvalidSyntaxError
 
@@ -675,6 +675,10 @@ class Parser:
             self.advance()
 
             return res.success(VarExtendedAccessNode(var_name_tok, key_token))
+        elif token.type == TokenTypes.TT_MULTI_STRING:
+            res.register_advancement()
+            self.advance()
+            return res.success(StringMultiNode(token))
         elif token.type == TokenTypes.TT_LPAREN:
             """atom  : LPAREN expr RPAREN"""
             res.register_advancement()
