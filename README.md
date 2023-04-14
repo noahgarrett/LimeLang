@@ -23,6 +23,9 @@ var b = 2.5
 var c = "test"
 var d = [1, 2, 3]
 var e = {id: 0, location: "Applebees"}
+var f = """
+multi-line
+"""
 
 # List Methods
 var element = d[0]
@@ -90,6 +93,22 @@ if testValue == 1 and 15 == 15 {
 } else {
     print("else condition")
 }
+
+# Executing python code (Must only be used with multi-line strings)
+# This returns back a dict with all local variables set
+var pythonCode = """
+def spam():
+    spam_count = 0
+    for i in range(5):
+        print('SPAM')
+        spam_count += 1
+    return spam_count
+
+spam_count = spam()
+"""
+
+var spam = exec(pythonCode)
+print(spam["spam_count"])
 ```
 
 ## Arithmetics
