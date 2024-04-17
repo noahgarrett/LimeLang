@@ -10,14 +10,15 @@ from llvmlite import ir
 import llvmlite.binding as llvm
 from ctypes import CFUNCTYPE, c_int, c_float
 
-# pyinstaller --onefile --name lime main.py
+# pyinstaller --onefile --name lime --icon=assets/lime_icon.ico main.py
 
 def parse_arguments() -> Namespace:
     arg_parser: ArgumentParser = ArgumentParser(
-        description="LimeLang v0.0.1-alpha"
+        description="LimeLang v0.0.3-alpha"
     )
     # Required Arguments
     arg_parser.add_argument("file_path", type=str, help="Path to your entry point lime file (ex. `main.lime`)")
+    arg_parser.add_argument("--debug", action="store_true", help="Prints internal debug information")
 
     return arg_parser.parse_args()
 
@@ -27,8 +28,13 @@ PARSER_DEBUG: bool = False
 COMPILER_DEBUG: bool = False
 RUN_CODE: bool = True
 
+PROD_DEBUG: bool = False
+
 if __name__ == '__main__':
     args = parse_arguments()
+
+    if args.debug:
+        PROD_DEBUG = True
 
     # Read from input file
     with open(args.file_path, "r") as f:
@@ -43,7 +49,9 @@ if __name__ == '__main__':
     l: Lexer = Lexer(source=code)
     p: Parser = Parser(lexer=l)
 
+    parse_st: float = time.time()
     program: Program = p.parse_program()
+    parse_et: float = time.time()
     if len(p.errors) > 0:
         for err in p.errors:
             print(err)
@@ -56,7 +64,9 @@ if __name__ == '__main__':
         print("Wrote AST to debug/ast.json successfully")
 
     c: Compiler = Compiler()
+    compiler_st: float = time.time()
     c.compile(node=program)
+    compiler_et: float = time.time()
 
     # Output steps
     module: ir.Module = c.module
@@ -99,4 +109,7 @@ if __name__ == '__main__':
 
         et = time.time()
 
-        print(f'\n\nProgram returned: {result}\n=== Executed in {round((et - st) * 1000, 6)} ms. ===')
+        if PROD_DEBUG:
+            print(f"\n\n=== Parsed in: {round((parse_et - parse_st) * 1000, 6)} ms. ===")
+            print(f"=== Compiled in: {round((compiler_et - compiler_st) * 1000, 6)} ms. ===")
+        print(f'=== Executed in {round((et - st) * 1000, 6)} ms. ===\n\nProgram returned: {result}')

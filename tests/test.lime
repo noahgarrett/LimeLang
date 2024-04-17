@@ -1,7 +1,16 @@
-import "math.lime";
+
+fn fib(n: int) -> int {
+    if n == 1 {
+        return 0;
+    }
+
+    if n == 2 {
+        return 1;
+    }
+
+    return fib(n - 1) + fib(n - 2);
+}
 
 fn main() -> int {
-    let sum: int = add(1, 2);
-
-    return sum;
+    return fib(32);
 }

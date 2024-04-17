@@ -43,6 +43,31 @@ fn main() -> int {
     - `..\..\limelang\dist` (your path will be similar)
 7. Follow the rest of the instructions shown above for using the pre-built exe
 
+## Benchmarks
+These are just crude and very specific benchmarks comparing vs LimeLang
+
+### Fibonacci
+Limelang proves to be **~31.87x** speedup when compared to Python
+- LimeLang (**10.020018 ms**)
+- Python (**319.3933 ms**)
+```cpp
+fn fib(n: int) -> int {
+    if n == 1 {
+        return 0;
+    }
+
+    if n == 2 {
+        return 1;
+    }
+
+    return fib(n - 1) + fib(n - 2);
+}
+
+fn main() -> int {
+    return fib(32);
+}
+```
+
 ## Features
 All current features are subject to change as this language is still in the **Alpha** stages.
 
