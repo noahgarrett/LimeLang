@@ -112,7 +112,10 @@ ALT_KEYWORDS: dict[str, TokenType] = {
     "yeet": TokenType.BREAK,
     "anothaone": TokenType.CONTINUE,
     "dab": TokenType.FOR,
-    "come": TokenType.IMPORT
+    "come": TokenType.IMPORT,
+    "nocap": TokenType.TRUE,
+    "cap": TokenType.FALSE,
+    "gib": TokenType.IMPORT
 }
 
 TYPE_KEYWORDS: list[str] = ["int", "float", "bool", "str", "void"]
