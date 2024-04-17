@@ -1,0 +1,59 @@
+{
+    "type": "Program",
+    "statements": [
+        {
+            "ImportStatement": {
+                "type": "ImportStatement",
+                "file_path": "math.lime"
+            }
+        },
+        {
+            "FunctionStatement": {
+                "type": "FunctionStatement",
+                "name": {
+                    "type": "IdentifierLiteral",
+                    "value": "main"
+                },
+                "return_type": "int",
+                "parameters": [],
+                "body": {
+                    "type": "BlockStatement",
+                    "statements": [
+                        {
+                            "type": "LetStatement",
+                            "name": {
+                                "type": "IdentifierLiteral",
+                                "value": "sum"
+                            },
+                            "value": {
+                                "type": "CallExpression",
+                                "function": {
+                                    "type": "IdentifierLiteral",
+                                    "value": "add"
+                                },
+                                "arguments": [
+                                    {
+                                        "type": "IntegerLiteral",
+                                        "value": 1
+                                    },
+                                    {
+                                        "type": "IntegerLiteral",
+                                        "value": 2
+                                    }
+                                ]
+                            },
+                            "value_type": "int"
+                        },
+                        {
+                            "type": "ReturnStatement",
+                            "return_value": {
+                                "type": "IdentifierLiteral",
+                                "value": "sum"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

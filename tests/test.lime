@@ -1,0 +1,7 @@
+import "math.lime";
+
+fn main() -> int {
+    let sum: int = add(1, 2);
+
+    return sum;
+}
